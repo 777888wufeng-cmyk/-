@@ -187,11 +187,23 @@ input[type=file]{display:none}
 
     <!-- API -->
     <div class="card">
-      <div class="ct">🔑 OpenAI API Key <span class="pill">GPT-4o Image</span></div>
-      <div class="api-row">
-        <input type="text" id="apikey" placeholder="粘贴 sk-proj-xxx API Key · 不填 = 演示模式">
+      <div class="ct">🔑 API 配置 <span class="pill">GPT-4o Image</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div>
+          <div style="font-size:11px;color:#999;margin-bottom:4px">API Key</div>
+          <input type="text" id="apikey" style="width:100%;padding:7px 10px;border:1px solid #e0ddd8;border-radius:8px;background:#fafaf8;font-size:13px;color:#1a1a18;font-family:monospace" placeholder="sk-proj-xxx · 不填 = 演示模式">
+        </div>
+        <div>
+          <div style="font-size:11px;color:#999;margin-bottom:4px">API 接口地址 <span style="color:#bbb">（可自定义反代）</span></div>
+          <input type="text" id="apibase" style="width:100%;padding:7px 10px;border:1px solid #e0ddd8;border-radius:8px;background:#fafaf8;font-size:13px;color:#1a1a18;font-family:monospace" placeholder="https://api.openai.com/v1" value="https://api.openai.com/v1">
+        </div>
       </div>
-      <p class="tip">🔒 Key 仅在本地浏览器运行，不上传任何服务器 · 申请地址：platform.openai.com</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button onclick="setBase('https://api.openai.com/v1')" style="padding:3px 10px;border-radius:999px;border:1px solid #e0ddd8;background:transparent;font-size:11px;cursor:pointer;font-family:inherit;color:#888">官方</button>
+        <button onclick="setBase('http://localhost:15990/v1')" style="padding:3px 10px;border-radius:999px;border:1px solid #e0ddd8;background:transparent;font-size:11px;cursor:pointer;font-family:inherit;color:#888">本地反代 :15990</button>
+        <button onclick="setBase('http://localhost:3000/v1')" style="padding:3px 10px;border-radius:999px;border:1px solid #e0ddd8;background:transparent;font-size:11px;cursor:pointer;font-family:inherit;color:#888">本地反代 :3000</button>
+      </div>
+      <p class="tip" style="margin-top:6px">🔒 Key 仅在本地浏览器运行，不上传任何服务器</p>
     </div>
 
     <!-- 模式选择 -->
@@ -502,7 +514,7 @@ async function genByRef(apiKey, faceB64, refB64, size){
   fd.append('prompt',"Put the person from the first image into the scene and style of the second image. Keep the person's face and facial features exactly the same. Match the lighting, color tone, composition, background, and clothing style of the second image. High quality, photorealistic, fashion photography. No watermarks, no text.");
   fd.append('n','1');
   fd.append('size',size);
-  const res=await fetch('https://api.openai.com/v1/images/edits',{
+  const res=await fetch(getBase()+'/images/edits',{
     method:'POST',
     headers:{'Authorization':'Bearer '+apiKey},
     body:fd
@@ -521,7 +533,7 @@ async function genByPrompt(apiKey, faceB64, prompt, negative, size){
   fd.append('prompt',`Portrait photo of the person in the image. ${prompt} Keep the person's face and facial features exactly the same. High quality, photorealistic.`);
   fd.append('n','1');
   fd.append('size',size);
-  const res=await fetch('https://api.openai.com/v1/images/edits',{
+  const res=await fetch(getBase()+'/images/edits',{
     method:'POST',
     headers:{'Authorization':'Bearer '+apiKey},
     body:fd
@@ -647,6 +659,15 @@ function dlPassed(){
   alert(`将下载 ${p.length} 张合格图片`);
 }
 function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+function getBase(){
+  const v = document.getElementById('apibase').value.trim();
+  return v.endsWith('/') ? v.slice(0,-1) : (v || 'https://api.openai.com/v1');
+}
+function setBase(url){
+  document.getElementById('apibase').value = url;
+}
+
 
 // ===== 初始化 =====
 renderSlots();
